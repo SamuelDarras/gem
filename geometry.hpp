@@ -153,6 +153,7 @@ struct mat {
         });
     }
     
+    // TODO: https://www.cuemath.com/algebra/inverse-of-a-matrix/ 
     mat invert() {
         mat m;
 
