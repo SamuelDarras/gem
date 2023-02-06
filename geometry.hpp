@@ -3,18 +3,22 @@
 #include <cstdarg>
 #include <functional>
 #include <numeric>
+#include <iostream>
 #include <math.h>
 #include <assert.h>
+#include <type_traits>
 
 template<unsigned int DIM=3, typename ContainedType=float>
 struct vec {
+    static const unsigned int n_dim = DIM;
+
     vec() {
         for (int i = DIM; i--; inner_data[i] = static_cast<ContainedType>(0.0));
     };
 
     template<class... Ts>
     vec(Ts ...args) : inner_data{args...} {
-        static_assert(sizeof...(args) == DIM);
+        static_assert(sizeof...(args) == DIM, "Invalid number of arguments");
     };
 
     ContainedType norm() {
@@ -27,6 +31,19 @@ struct vec {
 
     vec normalize() {
         return (*this)/norm();
+    }
+
+    unsigned int arg_max() {
+        ContainedType m = static_cast<ContainedType>(0.0);
+        unsigned int m_idx = 0;
+        for (unsigned int i = 0; i < DIM; i++) {
+            if ((*this)(i) > m) {
+                m = (*this)(i);
+                m_idx = i;
+            }
+        }
+
+        return m_idx;
     }
 
     ContainedType& operator[](unsigned int idx) {
@@ -106,9 +123,30 @@ private:
 
 template<unsigned int ROW, unsigned int COL, typename ContainedType=float>
 struct mat {
+    static const unsigned int n_row  = ROW;
+    static const unsigned int n_cols = COL;
+
     mat() {
         for (unsigned int i = 0; i < ROW; i++) {
             inner_data[i] = vec<COL, ContainedType>();
+        }
+    };
+
+    mat(mat& m) {
+        for (unsigned int i = 0; i < ROW; i++) {
+            for (unsigned int j = 0; j < COL; j++) {
+                inner_data[i][j] = ContainedType{m(i, j)};
+            }
+        }
+    };
+
+    template<unsigned int ROW2, unsigned int COL2>
+    mat(mat<ROW2, COL2>& m) {
+        static_assert(ROW2 <= ROW && COL2 <= COL, "Old mat must be same size or smaller");
+        for (unsigned int i = 0; i < ROW; i++) {
+            for (unsigned int j = 0; j < COL; j++) {
+                inner_data[i][j] = i < ROW2 && j < COL2 ? ContainedType{m(i, j)} : static_cast<ContainedType>(0.0);
+            }
         }
     };
 
@@ -146,18 +184,53 @@ struct mat {
         return r;
     }
 
+    inline void setCol(unsigned int idx, vec<ROW, ContainedType>& r) {
+        for (unsigned int i = ROW; i--; (*this)(i, idx) = r(i));
+    }
+    inline void setRow(unsigned int idx, vec<ROW, ContainedType>& r) {
+        for (unsigned int i = COL; i--; (*this)(idx, i) = r(i));
+    }
+
     mat<COL, ROW> T() {
         mat<COL, ROW> r;
         return r.map([&that = this](ContainedType, unsigned int i, unsigned int j) {
             return (*that)(j, i);
         });
     }
+
+    mat<ROW, COL+1> appendCol(vec<ROW, ContainedType> v, int idxAfter) {
+        mat<ROW, COL+1, ContainedType> r(*this);
+        r.setCol((idxAfter+COL+1)%(COL+1), v);
+        return r;
+    }
     
     // TODO: https://www.cuemath.com/algebra/inverse-of-a-matrix/ 
     mat invert() {
-        mat m;
+        assert(false && "Not implemented yet!");
+    }
 
-        return m;
+    vec<ROW, ContainedType> solve(vec<ROW, ContainedType> b) {
+        auto A = (*this).appendCol(b, -1);
+        unsigned int r = 0;
+        #pragma omp parallel for
+        for (unsigned int j = 0; j < COL; j++) {
+            unsigned int k = A.col(j).arg_max();
+
+            if (A(k, j) == static_cast<ContainedType>(0.0)) continue;
+            A(k) = A(k)/A(k, j);
+
+            if (k != r) {
+                std::swap(A(k), A(r));
+            }
+
+            for (unsigned int i = 0; i < ROW; i++) {
+                if (i == r) continue;
+                auto t = A(r)*A(i, j);
+                A(i) = A(i)-t;
+            }
+            r++;
+        }
+        return A.col(COL);
     }
 
     mat operator+(mat rhs) {
@@ -218,7 +291,7 @@ struct mat {
     }
 
     mat operator/(ContainedType factor) {
-        static_assert(factor != static_cast<ContainedType>(0.0));
+        static_assert(factor != static_cast<ContainedType>(0.0), "Division by 0");
         return map([&factor](ContainedType value, unsigned int, unsigned int) {
             return value / factor;
         });
@@ -243,10 +316,11 @@ private:
 template<unsigned int DIM, typename ContainedType>
 std::ostream& operator<<(std::ostream &outs, vec<DIM, ContainedType> v) {
     std::string s = "";
-    outs << "Dim : " << std::to_string(DIM) << " = ";
-    
-    for (unsigned int i = 0; i < DIM; i++) outs << std::to_string(v[i]) << ", ";
-
+    outs << "Dim : " << std::to_string(DIM) << " = [\n";
+    for (unsigned int i = 0; i < DIM; i++) {
+        outs << "\t" << std::to_string(v(i)) << ",\n";
+    }
+    outs << "]";
     return outs;
 }
 
@@ -257,7 +331,7 @@ std::ostream& operator<<(std::ostream &outs, mat<ROW, COL, ContainedType> m) {
     
     for (unsigned int i = 0; i < ROW; i++) {
         for (unsigned int j = 0; j < COL; j++) {
-            outs << std::to_string(m[i][j]) << ", ";
+            outs << std::to_string(m(i, j)) << ", ";
         }
         outs << "\n\t";
     }

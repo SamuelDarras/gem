@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 
 #include "geometry.hpp"
 
@@ -7,12 +8,31 @@ int main() {
     vec<3, float> v2(0.0f, 0.0f, 1.0f);
     vec<3, float> v3(1.0f, 0.0f, 1.0f);
 
-    std::cout << v1 << "\n";
+    // std::cout << v1 << "\n";
     // std::cout << v2 << "\n";
 
     // std::cout << (v1 + v2) << "\n";
 
-    std::cout << v1.normalize() << "\n";
+    // std::cout << v1.normalize() << "\n";
+
+    constexpr unsigned int size = 100;
+    mat<size, size> m;
+    for (unsigned int i = 0; i < m.n_cols; i++) {
+        for (unsigned int j = 0; j < m.n_row; j++) {
+            m(j, i) = (float)(rand()%10 - 5);
+        }
+    }
+    vec<size> b;
+    for (unsigned int i = 0; i < b.n_dim; i++) {
+        b(i) = (float)(rand()%10 - 5);
+    }
+    auto start = std::chrono::high_resolution_clock::now();
+    auto solution = m.solve(b);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << duration.count() << " ms\n";
+    // std::cout << m << "\n";
+    std::cout << solution << "\n";
 
     // auto m1 = mat<4, 4>::ones();
     // auto m2 = mat<4, 4>::identity();
