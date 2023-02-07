@@ -15,9 +15,11 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-file(GLOB SOURCES *.h *.cpp)
+file(GLOB SOURCES *.hpp *.cpp ./*/*.hpp ./*/*.cpp)
+message("Sources: ${SOURCES}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
