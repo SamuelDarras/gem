@@ -7,5 +7,5 @@
 #include "tgaimage.h"
 
 namespace cut {
-    void triangle(std::vector<gem::vec<4, float>> pts, float* zbuffer, cut::TGAImage& image, Shader& shader);
+    void triangle(std::vector<gem::vec<3, float>> pts, float* zbuffer, cut::TGAImage& image, Shader& shader);
 }

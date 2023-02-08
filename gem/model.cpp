@@ -33,9 +33,8 @@ gem::Model gem::Model::fromStream(std::istream &is) {
                 ls >> vertex(3-idx);
                 idx--;
             }
-            if (idx != 0) {
-                while(idx--) vertex(3-idx) = 1.0f;
-            }
+            idx++;
+            if (idx) vertex(3) = 1.0;
             r.vertices.push_back(vertex);
         } else if(!line.compare(0, 3, "vn ")) {
             gem::vec<3, float> normal;
@@ -62,8 +61,8 @@ void gem::Model::draw(cut::TGAImage& image, cut::Shader &shader) {
     float* zbuffer = (float*) malloc(zbufferSize * sizeof(float));
     initZBuffer(zbufferSize, zbuffer);
 
-    for (int32_t faceId = 0; faceId < faces().size(); faceId++) {
-        std::vector<vec<4, float>> screen_coords;
+    for (int32_t faceId = 0; faceId < (int32_t) faces().size(); faceId++) {
+        std::vector<vec<3, float>> screen_coords;
         auto face = facetsVec[faceId];
         for (int32_t i = 0; i < face.dimension(); i++) {
             screen_coords.push_back(

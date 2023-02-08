@@ -7,6 +7,7 @@
 #include "gem/geometry.hpp"
 #include "gem/model.hpp"
 #include "gouraud.hpp"
+#include "mount/camera.hpp"
 
 int main() {
     // gem::vec<3, float> v1(4.0f, 4.0f, 0.0f);
@@ -63,11 +64,23 @@ int main() {
     std::ifstream objs("../obj/african_head/african_head.obj");
     auto model = gem::Model::fromStream(objs);
     objs.close();
+    
+    constexpr int width  = 2048*4;
+    constexpr int height = 2048*4;
 
-    cut::TGAImage image(512, 512, cut::TGAImage::RGB);
+    mount::Camera camera(
+        gem::vec<>(0.3f, 0.4f, 1.0f),
+        gem::vec<>(0.0f, 1.0f, 0.0f),
+        gem::vec<>(0.0f, 0.0f, 0.0f),
+        gem::vec<5>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 10.0f)
+    );
+
+    cut::TGAImage image(width, height, cut::TGAImage::RGB);
 
     // TODO: camera !!
-    Gouraud shader(model);
+    Gouraud shader;
+    shader.model  = &model;
+    shader.camera = &camera;
     model.draw(image, shader);
 
     // std::cout << sizeof(cut::TGAHeader) << "\n";

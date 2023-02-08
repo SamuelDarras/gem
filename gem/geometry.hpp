@@ -31,6 +31,7 @@ namespace gem {
         }
 
         vec normalize() {
+            // std::cout << norm() << "\n";
             return (*this)/norm();
         }
 
@@ -133,14 +134,6 @@ namespace gem {
             }
         };
 
-        mat(mat& m) {
-            for (unsigned int i = 0; i < ROW; i++) {
-                for (unsigned int j = 0; j < COL; j++) {
-                    inner_data[i][j] = ContainedType{m(i, j)};
-                }
-            }
-        };
-
         template<unsigned int ROW2, unsigned int COL2>
         mat(mat<ROW2, COL2>& m) {
             static_assert(ROW2 <= ROW && COL2 <= COL, "Old mat must be same size or smaller");
@@ -185,10 +178,10 @@ namespace gem {
             return r;
         }
 
-        inline void setCol(unsigned int idx, vec<ROW, ContainedType>& r) {
+        inline void setCol(unsigned int idx, vec<ROW, ContainedType> r) {
             for (unsigned int i = ROW; i--; (*this)(i, idx) = r(i));
         }
-        inline void setRow(unsigned int idx, vec<ROW, ContainedType>& r) {
+        inline void setRow(unsigned int idx, vec<ROW, ContainedType> r) {
             for (unsigned int i = COL; i--; (*this)(idx, i) = r(i));
         }
 
