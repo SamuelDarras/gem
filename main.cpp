@@ -8,6 +8,7 @@
 #include "gem/model.hpp"
 #include "gouraud.hpp"
 #include "textured.hpp"
+#include "textured_tan.hpp"
 #include "mount/camera.hpp"
 
 int main() {
@@ -70,7 +71,7 @@ int main() {
     constexpr int height = 2048*4;
 
     mount::Camera camera(
-        gem::vec<>(0.3f, 0.4f, 1.0f),
+        gem::vec<>(0.4f, 0.4f, 2.0f),
         gem::vec<>(0.0f, 1.0f, 0.0f),
         gem::vec<>(0.0f, 0.0f, 0.0f),
         gem::vec<5>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 1.0f)

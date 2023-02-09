@@ -2,6 +2,7 @@
 #include <vector>
 
 #include "../gem/geometry.hpp"
+#include "draw.hpp"
 #include "shader.hpp"
 #include "tgaimage.h"
 
@@ -46,8 +47,6 @@ namespace cut {
                 TGAColor color;
                 bool d = shader.fragment(b, color);
 
-                // TGAColor color = TGAColor(255, 255, 255);                
-                // bool d = false;
                 if (!d && idx >= 0 && image.width() * image.height() > idx && zbuffer[idx] < z) {
                     zbuffer[idx] = z;
 
