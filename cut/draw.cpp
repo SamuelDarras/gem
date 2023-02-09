@@ -6,7 +6,7 @@
 #include "tgaimage.h"
 
 inline float triangleArea(gem::vec<3, float> a, gem::vec<3, float> b, gem::vec<3, float> c) {
-    return (b(0)-a(0))*(c(1)-b(1))-(c(0)-b(0))*(b(1)-a(1));
+    return (b(0)-a(0)) * (c(1)-b(1)) - (c(0)-b(0)) * (b(1)-a(1));
 }
 
 inline gem::vec<3, float> barycenter(gem::vec<3, float> A, gem::vec<3, float> B, gem::vec<3, float> C, gem::vec<3, float> P) {

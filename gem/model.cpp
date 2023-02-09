@@ -45,6 +45,15 @@ gem::Model gem::Model::fromStream(std::istream &is) {
                 idx--;
             }
             r.normals.push_back(normal);
+        } else if(!line.compare(0, 3, "vt ")) {
+            gem::vec<3, float> uv;
+            int8_t idx = 2;
+            
+            while(!ls.eof()) {
+                ls >> uv(2-idx);
+                idx--;
+            }
+            r.uvs.push_back(uv);
         }
     }
     return r;

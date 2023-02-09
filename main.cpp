@@ -7,6 +7,7 @@
 #include "gem/geometry.hpp"
 #include "gem/model.hpp"
 #include "gouraud.hpp"
+#include "textured.hpp"
 #include "mount/camera.hpp"
 
 int main() {
@@ -72,15 +73,26 @@ int main() {
         gem::vec<>(0.3f, 0.4f, 1.0f),
         gem::vec<>(0.0f, 1.0f, 0.0f),
         gem::vec<>(0.0f, 0.0f, 0.0f),
-        gem::vec<5>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 10.0f)
+        gem::vec<5>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 1.0f)
     );
+
+    cut::TGAImage texture;
+    texture.read_tga_file("../obj/african_head/african_head_diffuse.tga");
+
+    cut::TGAImage normal_map;
+    normal_map.read_tga_file("../obj/african_head/african_head_nm.tga");
+    
+    cut::TGAImage specular_map;
+    specular_map.read_tga_file("../obj/african_head/african_head_spec.tga");
 
     cut::TGAImage image(width, height, cut::TGAImage::RGB);
 
-    // TODO: camera !!
-    Gouraud shader;
+    Textured shader;
     shader.model  = &model;
     shader.camera = &camera;
+    shader.uniform_texture = &texture;
+    shader.uniform_normal_map = &normal_map;
+    shader.uniform_spec_map = &specular_map;
     model.draw(image, shader);
 
     // std::cout << sizeof(cut::TGAHeader) << "\n";

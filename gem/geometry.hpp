@@ -53,13 +53,13 @@ namespace gem {
             return inner_data[idx];
         }
 
-        vec operator+(vec<>& rhs) {
+        vec operator+(vec rhs) {
             vec r;
             for (unsigned int i = DIM; i--; r[i] = inner_data[i] + rhs[i]);
             return r;
         }
 
-        vec operator-(vec& rhs) {
+        vec operator-(vec rhs) {
             vec r;
             for (unsigned int i = DIM; i--; r[i] = inner_data[i] - rhs[i]);
             return r;
@@ -71,7 +71,12 @@ namespace gem {
             return r;
         }
 
-        ContainedType operator*(vec& rhs) {
+        // ContainedType operator*(vec& rhs) {
+        //     ContainedType sum = static_cast<ContainedType>(0);
+        //     for (unsigned int i = DIM; i--; sum += inner_data[i] * rhs[i]);
+        //     return sum;
+        // }
+        ContainedType operator*(vec rhs) {
             ContainedType sum = static_cast<ContainedType>(0);
             for (unsigned int i = DIM; i--; sum += inner_data[i] * rhs[i]);
             return sum;
