@@ -24,10 +24,7 @@ namespace mount {
 
             { // Projection
                 projection = gem::mat<4, 4>::identity();
-                // projection(0, 2) = -position(0)/position(2);
-                // projection(1, 2) = -position(1)/position(2);
-                // projection(2, 2) = 0.0f;
-                projection(3, 2) = -1.0/position(2);
+                projection(3, 2) = -1.0/(position - center).norm();
             }
 
             { // Viewport

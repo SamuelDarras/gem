@@ -20,23 +20,33 @@ struct TexturedTan : cut::Shader {
     gem::mat<3, 3> ndc_tri;
 
     gem::vec<3, float> vertex(int32_t faceId, int32_t nthVert) {
-        varying_normal.setCol(nthVert, model->norm(faceId, nthVert));
         varying_uv.setCol(nthVert, model->uv(faceId, nthVert));
-        
 
-        auto v = camera->projection * camera->model_view * (model->vert(faceId, nthVert));
+        auto nrm =  (camera->projection * camera->model_view)
+            .T()
+            .solve(model->norm(faceId, nthVert).proj<4>(0.0f))
+            .proj<3>();
+
+        varying_normal.setCol(
+            nthVert,
+            nrm
+        );
+
+        auto v = camera->model_view * (model->vert(faceId, nthVert));
         
         ndc_tri.setCol(nthVert, (v / v(3)).proj<3>());
 
-        auto screen_v = camera->viewport * v;
+        auto screen_v = camera->viewport * camera->projection * v;
         return screen_v.proj<3>() / screen_v(3);
     }
+    
     bool fragment(gem::vec<3, float> bar, cut::TGAColor& color) {
         auto uv = varying_uv * bar;
         auto b_norm = (varying_normal * bar).normalize();
         
         gem::vec<3, float> ligt_dir(1.0f, 1.0f, 1.0f);
         ligt_dir = ligt_dir.normalize();
+        ligt_dir = (camera->model_view * ligt_dir.proj<4>(0.0f)).proj<3>().normalize();
         
         float spec;
         {
@@ -56,9 +66,9 @@ struct TexturedTan : cut::Shader {
                 static_cast<float>(norm_color.bgra[1]),
                 static_cast<float>(norm_color.bgra[0])
             );
-            norm_perturbation = norm_perturbation/127.5f - 1.0f;
+            norm_perturbation = norm_perturbation/255.0f * 2.0f - 1.0f;
 
-            gem::mat<3, 3>A;
+            gem::mat<3, 3> A;
             A(0) = ndc_tri.col(1) - ndc_tri.col(0);
             A(1) = ndc_tri.col(2) - ndc_tri.col(0);
             A(2) = b_norm;
@@ -81,6 +91,7 @@ struct TexturedTan : cut::Shader {
             B.setCol(1, j);
             B.setCol(2, b_norm);
 
+            norm_perturbation = gem::vec<>{1.0f, 1.0f, 1.0f}.normalize();
             norm = (B*norm_perturbation).normalize();
         }
 
@@ -93,10 +104,12 @@ struct TexturedTan : cut::Shader {
         // color = cut::TGAColor(r(0)*255, r(1)*255, r(2)*255);
         norm = (norm + 1.0f) / 2.0f;
         color = cut::TGAColor(norm(0)*255, norm(1)*255, norm(2)*255);
-        if (std::fmod(uv(0), 0.03f) <= 0.001f) color = cut::TGAColor(light*255, 0, 0);
-        else if (std::fmod(uv(1), 0.03f) <= 0.001f) color = cut::TGAColor(0, 0, light*255);
+        // b_norm = (b_norm + 1.0f) / 2.0f;
+        // color = cut::TGAColor(b_norm(0)*255, b_norm(1)*255, b_norm(2)*255);
+        // if (std::fmod(uv(0), 0.03f) <= 0.001f) color = cut::TGAColor(light*255, 0, 0);
+        // else if (std::fmod(uv(1), 0.03f) <= 0.001f) color = cut::TGAColor(0, 0, light*255);
         // else color = cut::TGAColor(light*255, light*255, light*255);
-        // color = cut::TGAColor(spec*255, spec*255, spec*255);
+        // color = cut::TGAColor(light*255, light*255, light*255);
         // color = cut::TGAColor(model_spec*255, model_spec*255, model_spec*255);
         return false;
     }

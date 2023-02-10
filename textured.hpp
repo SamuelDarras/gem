@@ -24,9 +24,11 @@ struct Textured : cut::Shader {
         auto screen_v = v.proj<3>() / v(3);
         return screen_v;
     }
+
     bool fragment(gem::vec<3, float> bar, cut::TGAColor& color) {
         auto uv = varying_uv * bar;
-        gem::vec<3, float> ligt_dir(1.0f, 1.0f, 1.0f);
+        // gem::vec<3, float> ligt_dir(0.7f, 1.0f, 0.5f);
+        gem::vec<3, float> ligt_dir = (camera->position).normalize();
         ligt_dir = ligt_dir.normalize();
 
         auto norm_color = uniform_normal_map->get(uv(0)*uniform_normal_map->width(), (1.0f-uv(1))*uniform_normal_map->height());
@@ -36,17 +38,21 @@ struct Textured : cut::Shader {
             static_cast<float>(norm_color.bgra[0])
         );
         norm = norm/128.0f - 1.0f;
+        norm = (camera->projection * camera->model_view).T().solve(norm.proj<4>(0.0f)).proj<3>().normalize();
+        
+        ligt_dir = (camera->projection * camera->model_view * ligt_dir.proj<4>(0.0f)).proj<3>().normalize();
         
         float light = std::max(0.0f, norm * ligt_dir.normalize());
 
         auto diff = uniform_texture->get(uv(0)*uniform_texture->width(), (1.0f-uv(1))*uniform_texture->height());
         auto spec_color = uniform_texture->get(uv(0)*uniform_texture->width(), (1.0f-uv(1))*uniform_texture->height());
-        auto model_spec = static_cast<float>(spec_color.bgra[0]+spec_color.bgra[1]+spec_color.bgra[2])/255.0f;
+        auto model_spec = static_cast<float>(spec_color.bgra[0]+spec_color.bgra[1]+spec_color.bgra[2]);
 
         auto r = (norm * (norm * ligt_dir * 2.0f) - ligt_dir).normalize();
-        float spec = pow(std::max(r(2), 0.0f), model_spec);
+        float spec = pow(std::max(r*camera->position.normalize(), 0.0f), model_spec);
 
-        color = cut::TGAColor(diff.bgra[2]*(light + 0.6f*spec), diff.bgra[1]*(light + 0.6f*spec), diff.bgra[0] * (light + 0.6f*spec));
+        float f = 1.0f*light + 0.6f*spec;
+        color = cut::TGAColor(diff.bgra[2]*f, diff.bgra[1]*f, diff.bgra[0]*f);
         return false;
     }
 

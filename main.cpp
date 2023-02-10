@@ -64,6 +64,7 @@ int main() {
     // std::cout << m3.T() << "\n";
 
     std::ifstream objs("../obj/african_head/african_head.obj");
+    // std::ifstream objs("../obj/diablo3_pose/diablo3_pose.obj");
     auto model = gem::Model::fromStream(objs);
     objs.close();
     
@@ -71,7 +72,7 @@ int main() {
     constexpr int height = 2048*4;
 
     mount::Camera camera(
-        gem::vec<>(0.4f, 0.4f, 2.0f),
+        gem::vec<>(0.7f, 0.4f, 1.0f),
         gem::vec<>(0.0f, 1.0f, 0.0f),
         gem::vec<>(0.0f, 0.0f, 0.0f),
         gem::vec<5>(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 1.0f)
@@ -81,22 +82,22 @@ int main() {
     texture.read_tga_file("../obj/african_head/african_head_diffuse.tga");
 
     cut::TGAImage normal_map;
-    normal_map.read_tga_file("../obj/african_head/african_head_nm.tga");
+    // normal_map.read_tga_file("../obj/african_head/african_head_nm.tga");
+    normal_map.read_tga_file("../obj/african_head/african_head_nm_tangent.tga");
     
     cut::TGAImage specular_map;
     specular_map.read_tga_file("../obj/african_head/african_head_spec.tga");
 
     cut::TGAImage image(width, height, cut::TGAImage::RGB);
 
-    Textured shader;
+    TexturedTan shader;
+    // Textured shader;
     shader.model  = &model;
     shader.camera = &camera;
-    shader.uniform_texture = &texture;
+    shader.uniform_texture    = &texture;
     shader.uniform_normal_map = &normal_map;
-    shader.uniform_spec_map = &specular_map;
+    shader.uniform_spec_map   = &specular_map;
     model.draw(image, shader);
-
-    // std::cout << sizeof(cut::TGAHeader) << "\n";
 
     image.write_tga_file("./output.tga");
 }
