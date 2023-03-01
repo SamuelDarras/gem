@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "../gem/geometry.hpp"
 #include "draw.hpp"
@@ -27,11 +28,6 @@ namespace cut {
         auto v1 = pts[1];
         auto v2 = pts[2];
 
-        // std::cout << v0 << "\n";
-        // std::cout << v1 << "\n";
-        // std::cout << v2 << "\n";
-        // std::cout << "================\n";
-
         gem::vec<2, int> boundingBL{ (int) std::min(std::min(v0(0), v1(0)), v2(0)), (int) std::min(std::min(v0(1), v1(1)), v2(1))  };
         gem::vec<2, int> boundingTR{ (int) std::max(std::max(v0(0), v1(0)), v2(0)), (int) std::max(std::max(v0(1), v1(1)), v2(1)) };
 
@@ -39,7 +35,8 @@ namespace cut {
         for (int x = boundingBL(0); x <= boundingTR(0); x++) {
             for (int y = boundingBL(1); y <= boundingTR(1); y++) {
                 auto b = barycenter(v0.proj<3>(), v1.proj<3>(), v2.proj<3>(), gem::vec<3, float>(static_cast<float>(x), static_cast<float>(y), 0.0f));
-                if (b(0) < 0 || b(1) < 0 || b(2) < 0) continue;
+                if (b(0) < 0 || b(1) < 0 || b(2) < 0)
+                    continue;
 
                 float z = v0(2)*b(0) + v1(2)*b(1) + v2(2)*b(2);
                 int idx = x + y*image.width();
@@ -47,14 +44,12 @@ namespace cut {
                 TGAColor color;
                 bool d = shader.fragment(b, color);
 
-                if (!d && idx >= 0 && image.width() * image.height() > idx && zbuffer[idx] < z) {
-                    zbuffer[idx] = z;
+                if (d || idx < 0 || image.width() * image.height() <= idx || zbuffer[idx] >= z)
+                    continue;
 
-                    image.set(x, y, color);
-                }
-
+                zbuffer[idx] = z;
+                image.set(x, y, color);
             }
-
         }
     }
 }

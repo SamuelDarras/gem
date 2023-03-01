@@ -85,4 +85,6 @@ void gem::Model::draw(cut::TGAImage& image, cut::Shader &shader) {
             shader
         );
     }
+
+    free(zbuffer);
 }

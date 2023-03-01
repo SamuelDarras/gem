@@ -4,8 +4,8 @@
 
 namespace mount {
     struct Camera {
-        Camera(gem::vec<3, float> _position, gem::vec<3, float> _up, gem::vec<3, float> _center, gem::vec<5> vp) 
-        : position(_position), up(_up.normalize()), center(_center) {
+        Camera(gem::vec<3, float> _position, gem::vec<3, float> _up, gem::vec<3, float> _center, gem::vec<5> _vp) 
+        : position(_position), up(_up.normalize()), center(_center), vp(_vp) {
             { // Look at
                 auto z = (position-center).normalize();
                 auto x = (up ^ z).normalize();
@@ -42,6 +42,8 @@ namespace mount {
         gem::vec<3, float> position;
         gem::vec<3, float> up;
         gem::vec<3, float> center;
+
+        gem::vec<5, float> vp;
 
         gem::mat<4, 4> model;
         gem::mat<4, 4> view;

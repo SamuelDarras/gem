@@ -31,7 +31,6 @@ namespace gem {
         }
 
         vec normalize() {
-            // std::cout << norm() << "\n";
             return (*this)/norm();
         }
 
@@ -71,11 +70,6 @@ namespace gem {
             return r;
         }
 
-        // ContainedType operator*(vec& rhs) {
-        //     ContainedType sum = static_cast<ContainedType>(0);
-        //     for (unsigned int i = DIM; i--; sum += inner_data[i] * rhs[i]);
-        //     return sum;
-        // }
         ContainedType operator*(vec rhs) {
             ContainedType sum = static_cast<ContainedType>(0);
             for (unsigned int i = DIM; i--; sum += inner_data[i] * rhs[i]);
@@ -141,7 +135,7 @@ namespace gem {
 
         template<unsigned int ROW2, unsigned int COL2>
         mat(mat<ROW2, COL2>& m) {
-            static_assert(ROW2 <= ROW && COL2 <= COL, "Old mat must be same size or smaller");
+            static_assert(ROW2 <= ROW && COL2 <= COL, "Old matrix must be the same size or smaller than the new");
             for (unsigned int i = 0; i < ROW; i++) {
                 for (unsigned int j = 0; j < COL; j++) {
                     inner_data[i][j] = i < ROW2 && j < COL2 ? ContainedType{m(i, j)} : static_cast<ContainedType>(0.0);
@@ -211,11 +205,13 @@ namespace gem {
         vec<ROW, ContainedType> solve(vec<ROW, ContainedType> b) {
             auto A = (*this).appendCol(b, -1);
             unsigned int r = 0;
+
             #pragma omp parallel for
             for (unsigned int j = 0; j < COL; j++) {
                 unsigned int k = A.col(j).arg_max();
 
                 if (A(k, j) == static_cast<ContainedType>(0.0)) continue;
+
                 A(k) = A(k)/A(k, j);
 
                 if (k != r) {
